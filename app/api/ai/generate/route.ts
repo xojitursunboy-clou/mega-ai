@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
           n: 1,
           size: '1024x1024',
         });
-        openaiUrl = response.data[0]?.url || null;
+       openaiUrl = response.data?.[0]?.url ?? null;
       } else {
         const response = await openai.images.generate({
           model: 'dall-e-3',
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
           size: '1024x1024',
           quality: 'standard',
         });
-        openaiUrl = response.data[0]?.url || null;
+        openaiUrl = response.data?.[0]?.url ?? null;
       }
 
       if (!openaiUrl) throw new Error('OpenAI rasmni qaytarmadi');
