@@ -6,10 +6,16 @@ import Logo from '@/components/ui/Logo';
 import LangSwitcher from '@/components/ui/LangSwitcher';
 import { useLang } from '@/hooks/useLang';
 import { t } from '@/lib/i18n';
-import { MessageSquare, CreditCard, User, Settings, LogOut, Menu, X } from 'lucide-react';
+import { MessageSquare, CreditCard, User, Settings, LogOut, Menu, X, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function AppSidebar({ username }: { username?: string }) {
+interface Props {
+  username?: string;
+  avatarUrl?: string | null;
+  onHistoryClick?: () => void;
+}
+
+export default function AppSidebar({ username, avatarUrl, onHistoryClick }: Props) {
   const { lang } = useLang();
   const tr = t(lang);
   const pathname = usePathname();
@@ -17,10 +23,9 @@ export default function AppSidebar({ username }: { username?: string }) {
   const [open, setOpen] = useState(false);
 
   const items = [
-    { href: '/chat',                  icon: MessageSquare, label: tr.sidebar.chat },
-    { href: '/pricing',               icon: CreditCard,   label: tr.sidebar.subscription },
-    { href: '/profile',               icon: User,         label: tr.sidebar.profile },
-    { href: '/settings',              icon: Settings,     label: tr.sidebar.settings },
+    { href: '/chat',    icon: MessageSquare, label: tr.sidebar.chat },
+    { href: '/pricing', icon: CreditCard,    label: tr.sidebar.subscription },
+    { href: '/profile', icon: User,          label: tr.sidebar.profile },
   ];
 
   const handleLogout = async () => {
@@ -31,6 +36,8 @@ export default function AppSidebar({ username }: { username?: string }) {
       toast.error('Xatolik');
     }
   };
+
+  const isChatPage = pathname === '/chat' || pathname.startsWith('/chat/');
 
   const nav = (
     <>
@@ -52,14 +59,31 @@ export default function AppSidebar({ username }: { username?: string }) {
             </button>
           );
         })}
+
+        {isChatPage && onHistoryClick && (
+          <button onClick={() => { onHistoryClick(); setOpen(false); }}
+            className="sidebar-item">
+            <History size={18} />
+            <span className="text-sm font-medium">Chat tarixi</span>
+          </button>
+        )}
+
+        <button onClick={() => { router.push('/settings'); setOpen(false); }}
+          className={`sidebar-item ${pathname === '/settings' ? 'sidebar-item-active' : ''}`}>
+          <Settings size={18} />
+          <span className="text-sm font-medium">{tr.sidebar.settings}</span>
+        </button>
       </nav>
 
       <div className="p-3 border-t border-dark-border space-y-3">
         <LangSwitcher />
         {username && (
           <div className="flex items-center gap-2 px-2">
-            <div className="w-7 h-7 rounded-full bg-primary-600 flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
-              {username[0]}
+            <div className="w-7 h-7 rounded-full overflow-hidden bg-primary-600 flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
+              {avatarUrl
+                ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                : username[0]
+              }
             </div>
             <p className="text-xs font-medium text-gray-200 truncate">{username}</p>
           </div>
@@ -74,7 +98,6 @@ export default function AppSidebar({ username }: { username?: string }) {
 
   return (
     <>
-      {/* Mobile topbar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 bg-dark-card border-b border-dark-border">
         <button onClick={() => setOpen(true)} className="text-gray-400 hover:text-white">
           <Menu size={20} />
@@ -82,12 +105,10 @@ export default function AppSidebar({ username }: { username?: string }) {
         <Logo size="sm" />
       </div>
 
-      {/* Mobile overlay */}
       {open && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-40 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
-      {/* Mobile sidebar drawer */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-dark-card border-r border-dark-border flex flex-col
         transform transition-transform duration-200
@@ -97,7 +118,6 @@ export default function AppSidebar({ username }: { username?: string }) {
         {nav}
       </aside>
 
-      {/* Mobile spacer */}
       <div className="lg:hidden h-14 w-full shrink-0" />
     </>
   );
